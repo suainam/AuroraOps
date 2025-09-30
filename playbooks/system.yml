@@ -1,0 +1,35 @@
+---
+- hosts: newvps
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  pre_tasks:
+    - name: Ping 测试
+      ping:
+
+  roles:
+    - role: system-security/ssh
+      tags: [ssh]
+
+    - role: system-security/firewall
+      tags: [firewall]
+
+    - role: system-security/fail2ban
+      tags: [fail2ban]
+
+    - role: system-tuning/sysctl
+      tags: [sysctl]
+
+    - role: system-tuning/limits
+      tags: [limits]
+
+    - role: system-tuning/swap
+      tags: [swap]
+
+    - role: system-tuning/journald
+      tags: [journald]
+
+    - role: system-tuning/logrotate
+      tags: [logrotate]
+

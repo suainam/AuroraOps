@@ -1,0 +1,24 @@
+---
+- name: Configure nftables rules
+  copy:
+    dest: /etc/nftables.conf
+    content: |
+      table inet filter {
+          chain input {
+              type filter hook input priority filter; policy drop;
+              ct state established,related accept
+              iif "lo" accept
+              {% for port in firewall_allow_tcp_ports %}
+              tcp dport {{ port }} accept
+              ip6 nexthdr tcp tcp dport {{ port }} accept
+              {% endfor %}
+          }
+          chain forward {
+              type filter hook forward priority filter; policy drop;
+          }
+          chain output {
+              type filter hook output priority filter; policy accept;
+          }
+      }
+  notify: Reload nftables
+

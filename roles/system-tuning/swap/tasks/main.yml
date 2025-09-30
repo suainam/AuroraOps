@@ -1,0 +1,27 @@
+---
+- name: Create swap file if not exists
+  command: fallocate -l 4G /swapfile
+  args:
+    creates: /swapfile
+
+- name: Set swap file permissions
+  file:
+    path: /swapfile
+    mode: '0600'
+
+- name: Make swap
+  command: mkswap /swapfile
+  args:
+    creates: /swapfile
+
+- name: Enable swap
+  command: swapon /swapfile
+  args:
+    creates: /proc/swaps
+
+- name: Persist swap in fstab
+  lineinfile:
+    path: /etc/fstab
+    line: '/swapfile none swap sw 0 0'
+    state: present
+

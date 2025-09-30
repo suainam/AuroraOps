@@ -1,0 +1,5 @@
+firewall_allow_tcp_ports:
+  - 6868
+  - 80
+  - 443
+

@@ -1,0 +1,81 @@
+---
+- hosts: newvps
+  become: true
+  vars:
+    ansible_python_interpreter: /usr/bin/python3
+
+  tasks:
+    - name: 更新系统软件包
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: 安装基础工具
+      apt:
+        name:
+          - curl
+          - git
+          - vim
+          - tree
+          - htop
+          - net-tools
+          - lsof
+          - python3
+          - python3-apt
+          - python3-pip
+          - ansible
+        state: present
+
+    - name: 创建 Ansible 目录结构
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: '0755'
+      loop:
+        - ~/ansible
+        - ~/ansible/inventories
+        - ~/ansible/inventories/group_vars
+        - ~/ansible/inventories/host_vars
+        - ~/ansible/playbooks
+        - ~/ansible/roles
+
+    - name: 创建阶段 1 roles 目录骨架
+      file:
+        path: "{{ item }}"
+        state: directory
+      loop:
+        - ~/ansible/roles/system-security/ssh/tasks
+        - ~/ansible/roles/system-security/ssh/handlers
+        - ~/ansible/roles/system-security/ssh/defaults
+        - ~/ansible/roles/system-security/firewall/tasks
+        - ~/ansible/roles/system-security/firewall/handlers
+        - ~/ansible/roles/system-security/firewall/defaults
+        - ~/ansible/roles/system-security/fail2ban/tasks
+        - ~/ansible/roles/system-security/fail2ban/handlers
+        - ~/ansible/roles/system-security/fail2ban/defaults
+        - ~/ansible/roles/system-tuning/sysctl/tasks
+        - ~/ansible/roles/system-tuning/sysctl/handlers
+        - ~/ansible/roles/system-tuning/sysctl/defaults
+        - ~/ansible/roles/system-tuning/limits/tasks
+        - ~/ansible/roles/system-tuning/limits/handlers
+        - ~/ansible/roles/system-tuning/limits/defaults
+        - ~/ansible/roles/system-tuning/swap/tasks
+        - ~/ansible/roles/system-tuning/swap/handlers
+        - ~/ansible/roles/system-tuning/swap/defaults
+        - ~/ansible/roles/system-tuning/journald/tasks
+        - ~/ansible/roles/system-tuning/journald/handlers
+        - ~/ansible/roles/system-tuning/journald/defaults
+        - ~/ansible/roles/system-tuning/logrotate/tasks
+        - ~/ansible/roles/system-tuning/logrotate/handlers
+        - ~/ansible/roles/system-tuning/logrotate/defaults
+
+    - name: 创建默认 inventory
+      copy:
+        dest: ~/ansible/inventories/hosts.ini
+        content: |
+          [newvps]
+          127.0.0.1 ansible_connection=local
+
+    - name: 测试 Ansible 是否可用
+      ping:
+

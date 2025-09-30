@@ -1,0 +1,4 @@
+---
+- name: Force logrotate
+  command: logrotate -f /etc/logrotate.conf
+

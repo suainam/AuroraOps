@@ -1,0 +1,20 @@
+---
+- name: Ensure nf_conntrack module is loaded
+  modprobe:
+    name: nf_conntrack
+    state: present
+
+- name: Persist nf_conntrack module
+  copy:
+    dest: /etc/modules-load.d/nf_conntrack.conf
+    content: "nf_conntrack\n"
+
+- name: Apply sysctl params
+  sysctl:
+    name: "{{ item.key }}"
+    value: "{{ item.value }}"
+    state: present
+    sysctl_set: yes
+    reload: yes
+  loop: "{{ sysctl_params | dict2items }}"
+

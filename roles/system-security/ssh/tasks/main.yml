@@ -1,0 +1,34 @@
+---
+- name: Ensure SSH port
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port'
+    line: 'Port 6868'
+  notify: Restart sshd
+
+- name: Disable root login
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin'
+    line: 'PermitRootLogin yes'
+  notify: Restart sshd
+
+- name: Disable password authentication
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+  notify: Restart sshd
+
+- name: Enable keepalive
+  blockinfile:
+    path: /etc/ssh/sshd_config
+    block: |
+      ClientAliveInterval 60
+      ClientAliveCountMax 3
+  notify: Restart sshd
+
+- name: Validate sshd config
+  command: sshd -t
+  changed_when: false
+

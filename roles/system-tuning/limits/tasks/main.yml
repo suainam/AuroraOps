@@ -1,0 +1,8 @@
+---
+- name: Set nofile limits
+  copy:
+    dest: /etc/security/limits.d/99-nofile.conf
+    content: |
+      * soft nofile 65535
+      * hard nofile 65535
+

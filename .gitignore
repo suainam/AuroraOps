@@ -1,0 +1,32 @@
+# Python/venv
+venv/
+__pycache__/
+*.pyc
+
+# Ansible runtime
+*.retry
+.ansible/
+.cache/
+
+# Secrets & vault
+secrets/
+.env
+.env.*
+vault_pass.txt
+
+# Inventories (示例：可选择不忽略 hosts.ini，但不要放真实生产IP与密码)
+inventories/*/host_vars/*
+inventories/*/group_vars/*
+# 如需版本化示例 vars，请使用 example/ 下的模板文件
+
+# System/Editor
+.DS_Store
+*.swp
+*.swo
+
+# Logs
+logs/
+*.log
+
+# CI artifacts
+.github/*-cache/

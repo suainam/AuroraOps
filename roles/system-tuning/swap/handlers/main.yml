@@ -1,0 +1,4 @@
+---
+- name: Reload fstab
+  command: mount -a
+

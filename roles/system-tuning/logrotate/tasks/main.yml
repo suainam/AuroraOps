@@ -1,0 +1,13 @@
+---
+- name: Configure logrotate
+  lineinfile:
+    path: /etc/logrotate.conf
+    regexp: '^rotate'
+    line: 'rotate 3'
+
+- name: Enable compression
+  lineinfile:
+    path: /etc/logrotate.conf
+    regexp: '^#?compress'
+    line: 'compress'
+

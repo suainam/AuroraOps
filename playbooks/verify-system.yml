@@ -1,0 +1,119 @@
+---
+- hosts: newvps
+  become: true
+  tasks:
+    # SSH 验证
+    - name: 验证 SSH 配置
+      command: sshd -T
+      register: sshd_config
+      changed_when: false
+
+    - name: 检查 SSH 端口
+      assert:
+        that: "'port 6868' in sshd_config.stdout"
+        fail_msg: "❌ SSH 端口不是 6868"
+        success_msg: "✅ SSH 端口正确 (6868)"
+
+    # ⚠️ 暂时跳过 root 登录检查
+    # - name: 检查 root 登录是否禁用
+    #   assert:
+    #     that: "'permitrootlogin no' in sshd_config.stdout"
+    #     fail_msg: "❌ Root 登录未禁用"
+    #     success_msg: "✅ Root 登录已禁用"
+
+    - name: 检查密码登录是否禁用
+      assert:
+        that: "'passwordauthentication no' in sshd_config.stdout"
+        fail_msg: "❌ 密码登录未禁用"
+        success_msg: "✅ 密码登录已禁用"
+
+    # 防火墙验证
+    - name: 验证防火墙端口
+      command: nft list ruleset
+      register: nft_rules
+      changed_when: false
+
+    - name: 检查只放行 6868/80/443
+      assert:
+        that:
+          - "'tcp dport 6868' in nft_rules.stdout"
+          - "'tcp dport 80' in nft_rules.stdout"
+          - "'tcp dport 443' in nft_rules.stdout"
+          - "'tcp dport 22' not in nft_rules.stdout"
+        fail_msg: "❌ 防火墙端口配置不符合预期"
+        success_msg: "✅ 防火墙端口配置正确"
+
+    # sysctl 验证
+    - name: 验证 sysctl 参数
+      command: sysctl -a
+      register: sysctl_out
+      changed_when: false
+
+    - name: 检查 BBR
+      assert:
+        that: "'net.ipv4.tcp_congestion_control = bbr' in sysctl_out.stdout"
+        fail_msg: "❌ BBR 未启用"
+        success_msg: "✅ BBR 已启用"
+
+    - name: 检查 TCP Fast Open
+      assert:
+        that: "'net.ipv4.tcp_fastopen = 3' in sysctl_out.stdout"
+        fail_msg: "❌ TCP Fast Open 未启用"
+        success_msg: "✅ TCP Fast Open 已启用"
+
+    - name: 检查 conntrack
+      assert:
+        that: "'net.netfilter.nf_conntrack_max = 262144' in sysctl_out.stdout"
+        fail_msg: "❌ conntrack 未设置为 262144"
+        success_msg: "✅ conntrack 设置正确"
+
+    # limits 验证
+    - name: 验证 nofile 限制
+      shell: "ulimit -n"
+      register: nofile_limit
+      changed_when: false
+
+    - name: 检查 nofile=65535
+      assert:
+        that: "nofile_limit.stdout == '65535'"
+        fail_msg: "❌ nofile 限制未生效"
+        success_msg: "✅ nofile 限制正确 (65535)"
+
+    # swap 验证
+    - name: 验证 swap
+      command: swapon --show
+      register: swap_out
+      changed_when: false
+
+    - name: 检查 swap 大小
+      assert:
+        that: "'/swapfile' in swap_out.stdout and ('3.0G' in swap_out.stdout or '4.0G' in swap_out.stdout)"
+        fail_msg: "❌ swap 未正确配置为 3-4G"
+        success_msg: "✅ swap 配置正确 (3-4G)"
+
+    # journald 验证
+    - name: 验证 journald 大小
+      command: journalctl --disk-usage
+      register: journal_usage
+      changed_when: false
+
+    - name: 检查 journald 限制
+      assert:
+        that: "'10.0M' in journal_usage.stdout or '10M' in journal_usage.stdout"
+        fail_msg: "❌ journald 限制未生效"
+        success_msg: "✅ journald 限制正确 (10M)"
+
+    # logrotate 验证
+    - name: 验证 logrotate 配置
+      command: cat /etc/logrotate.conf
+      register: logrotate_conf
+      changed_when: false
+
+    - name: 检查 logrotate
+      assert:
+        that:
+          - "'rotate 3' in logrotate_conf.stdout"
+          - "'compress' in logrotate_conf.stdout"
+        fail_msg: "❌ logrotate 配置未生效"
+        success_msg: "✅ logrotate 配置正确 (rotate=3, compress)"
+

@@ -1,0 +1,15 @@
+---
+- name: Ensure journald override directory exists
+  file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Configure journald size
+  copy:
+    dest: /etc/systemd/journald.conf.d/override.conf
+    content: |
+      [Journal]
+      SystemMaxUse=10M
+  notify: Restart journald
+
